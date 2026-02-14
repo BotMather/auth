@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/JscorpTech/auth/internal/handlers"
-	"github.com/JscorpTech/auth/internal/routes"
+	"github.com/JscorpTech/auth/internal/modules/auth"
+	authHttp "github.com/JscorpTech/auth/internal/modules/auth/delivery/http"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -16,8 +16,16 @@ import (
 func main() {
 	logger, _ := zap.NewDevelopment()
 	ctx, _ := context.WithCancel(context.Background())
+
 	router := gin.Default()
-	routes.RegisterRoutes(router)
+	api := router.Group("/api")
+
+	// Auth routes
+	authRepository := auth.NewAuthRepository()
+	authUsecase := auth.NewAuthUsecase(authRepository)
+	authHandler := authHttp.NewAuthHandler(authUsecase)
+	authHttp.RegisterAuthRoutes(api, authHandler)
+
 	srv := http.Server{
 		Handler: router,
 		Addr:    ":8080",
