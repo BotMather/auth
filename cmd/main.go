@@ -17,7 +17,8 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	db, err := gorm.Open(sqlite.Open("db.sqlite3"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect databse")
