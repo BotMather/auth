@@ -36,6 +36,9 @@ func (a *AuthUsecaseImpl) ValidateToken(token string) (*jwt.MapClaims, error) {
 	if err != nil {
 		return nil, err
 	}
+	if claims["type"] != "refresh" {
+		return nil, ErrInvalidRefreshToken
+	}
 	return &claims, nil
 }
 

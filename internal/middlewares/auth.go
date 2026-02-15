@@ -1,10 +1,12 @@
 package middlewares
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/JscorpTech/auth/internal/config"
+	"github.com/JscorpTech/auth/internal/dto"
 	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -17,23 +19,17 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 
 		exp, ok := claims["exp"]
 		if !ok {
-			c.JSON(401, gin.H{
-				"error": "Invalid token",
-			})
+			dto.JSON(c, http.StatusUnauthorized, nil, "Invalid token")
 			c.Abort()
 			return
 		}
 		if exp.(float64) < float64(time.Now().Unix()) {
-			c.JSON(401, gin.H{
-				"error": "Token expired",
-			})
+			dto.JSON(c, http.StatusUnauthorized, nil, "Token expired")
 			c.Abort()
 			return
 		}
 		if err != nil || claims["type"] != "access" {
-			c.JSON(401, gin.H{
-				"error": "Unauthorized",
-			})
+			dto.JSON(c, http.StatusUnauthorized, nil, "Invalid token")
 			c.Abort()
 			return
 		}

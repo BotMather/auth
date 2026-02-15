@@ -3,9 +3,11 @@ package http
 import (
 	"net/http"
 
+	"github.com/JscorpTech/auth/internal/dto"
 	"github.com/JscorpTech/auth/internal/modules/auth"
 	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -25,16 +27,12 @@ func NewAuthHandler(usecase auth.AuthUsecase, logger *zap.Logger) *AuthHandler {
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var payload auth.AuthRefreshTokenRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"errors": utils.FormatValidationErrors(err, &payload),
-		})
+		dto.JSON(c, http.StatusBadRequest, utils.FormatValidationErrors(err, &payload), "Invalid request")
 		return
 	}
 	claims, err := h.usecase.ValidateToken(payload.RefreshToken)
-	if err != nil || (*claims)["type"] != "refresh" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid refresh token",
-		})
+	if err != nil {
+		dto.JSON(c, http.StatusUnauthorized, nil, "Invalid refresh token")
 		return
 	}
 
@@ -45,50 +43,63 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		Role: (*claims)["role"].(string),
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"access":  h.usecase.AccessToken(user),
-		"refresh": h.usecase.RefreshToken(user),
-	})
+	dto.JSON(c, http.StatusOK, auth.TokenDTO{
+		Access:  h.usecase.AccessToken(user),
+		Refresh: h.usecase.RefreshToken(user),
+	}, "")
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
 	var payload auth.AuthLoginRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": utils.FormatValidationErrors(err, &payload)})
+		dto.JSON(c, http.StatusBadRequest, utils.FormatValidationErrors(err, &payload), "Invalid request")
 		return
 	}
 	user, err := h.usecase.Login(ctx, payload.Phone, payload.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid credentials",
-		})
+		dto.JSON(c, http.StatusUnauthorized, nil, "Invalid credentials")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"access":  h.usecase.AccessToken(user),
-		"refresh": h.usecase.RefreshToken(user),
-	})
+	dto.JSON(c, http.StatusOK, auth.TokenDTO{
+		Access:  h.usecase.AccessToken(user),
+		Refresh: h.usecase.RefreshToken(user),
+	}, "")
 }
 
+// Register godoc
+// @Summary Get user profile
+// @Router /api/auth/me [get]
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.BaseResponse{data=auth.AuthMeResponse}
 func (h *AuthHandler) Me(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"user": c.MustGet("user"),
-	})
+	user := c.MustGet("user").(jwt.MapClaims)
+	dto.JSON(c, http.StatusOK, auth.AuthMeResponse{
+		User: user,
+	}, "")
 }
 
+// Register godoc
+// @Summary Register user
+// @Description Create new user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Router /api/auth/register [post]
+// @Success 200 {object} dto.BaseResponse{data=auth.AuthRegisterResponse}
+// @Param request body auth.AuthRegisterRequest true "Register request"
 func (h *AuthHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	var userPayload auth.AuthRegisterRequest
 	if err := c.ShouldBindJSON(&userPayload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": utils.FormatValidationErrors(err, &userPayload)})
+		dto.JSON(c, http.StatusBadRequest, utils.FormatValidationErrors(err, &userPayload), "Invalid request")
 		return
 	}
 	password, err := utils.HashPassword(userPayload.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Internal Server Error",
-		})
+		dto.JSON(c, http.StatusInternalServerError, nil, "Internal Server Error")
 		return
 	}
 	userModel := auth.User{
@@ -100,17 +111,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 	user, err := h.usecase.Register(ctx, &userModel)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		dto.JSON(c, http.StatusBadRequest, nil, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"message": "User registered successfully",
-		"user":    auth.ToRegisterResponse(user),
-		"token": map[string]string{
-			"access":  h.usecase.AccessToken(user),
-			"refresh": h.usecase.RefreshToken(user),
-		},
-	})
+	dto.JSON(c, http.StatusOK, auth.ToRegisterResponse(user, h.usecase.AccessToken(user), h.usecase.RefreshToken(user)), "")
 }

@@ -7,16 +7,38 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "github.com/JscorpTech/auth/docs"
 	"github.com/JscorpTech/auth/internal/config"
 	"github.com/JscorpTech/auth/internal/modules/auth"
 	authHttp "github.com/JscorpTech/auth/internal/modules/auth/delivery/http"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
+// @title           Swagger Example API
+// @version         1.0
+// @description     This is a sample server celler server.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @securityDefinitions.basic  BasicAuth
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 
 	err := godotenv.Load()
@@ -37,6 +59,7 @@ func main() {
 	db.AutoMigrate(&auth.User{})
 
 	router := gin.Default()
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	api := router.Group("/api")
 
 	// Auth routes

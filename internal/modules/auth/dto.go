@@ -13,6 +13,10 @@ type AuthLoginResponse struct {
 	Role      string `json:"role"`
 }
 
+type AuthMeResponse struct {
+	User map[string]any `json:"user"`
+}
+
 type AuthRefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
@@ -28,8 +32,7 @@ type AuthRegisterRequest struct {
 	Phone     string `json:"phone" binding:"required"`
 	Password  string `json:"password" binding:"required,min=8"`
 }
-
-type AuthRegisterResponse struct {
+type UserDTO struct {
 	ID        uint   `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -38,12 +41,28 @@ type AuthRegisterResponse struct {
 	Role      string `json:"role"`
 }
 
-func ToRegisterResponse(user *User) *AuthRegisterResponse {
+type TokenDTO struct {
+	Access  string `json:"access"`
+	Refresh string `json:"refresh"`
+}
+
+type AuthRegisterResponse struct {
+	User  UserDTO  `json:"user"`
+	Token TokenDTO `json:"token"`
+}
+
+func ToRegisterResponse(user *User, access string, refresh string) *AuthRegisterResponse {
 	return &AuthRegisterResponse{
-		ID:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		Phone:     user.Phone,
+		User: UserDTO{
+			ID:        user.ID,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			Email:     user.Email,
+			Phone:     user.Phone,
+		},
+		Token: TokenDTO{
+			Access:  access,
+			Refresh: refresh,
+		},
 	}
 }
