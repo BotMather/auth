@@ -1,10 +1,27 @@
 basePath: /api/v1
 definitions:
+  auth.AuthLoginRequest:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+    required:
+    - password
+    - phone
+    type: object
   auth.AuthMeResponse:
     properties:
       user:
         additionalProperties: {}
         type: object
+    type: object
+  auth.AuthRefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
     type: object
   auth.AuthRegisterRequest:
     properties:
@@ -78,6 +95,32 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login form
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.AuthLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.TokenDTO'
+              type: object
+      summary: Login user
+      tags:
+      - auth
   /api/auth/me:
     get:
       consumes:
@@ -95,6 +138,32 @@ paths:
                   $ref: '#/definitions/auth.AuthMeResponse'
               type: object
       summary: Get user profile
+      tags:
+      - auth
+  /api/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.AuthRefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.TokenDTO'
+              type: object
+      summary: Refresh token
       tags:
       - auth
   /api/auth/register:

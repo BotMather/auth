@@ -23,16 +23,20 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 	}
 }
 
+func (a *AuthRepositoryImpl) GetID(ctx context.Context, id int64) *User {
+	var user User
+	if err := a.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
+		return nil
+	}
+	return &user
+}
+
 func (a *AuthRepositoryImpl) GetByPhone(ctx context.Context, phone string) (*User, error) {
 	var user User
 	if err := a.db.WithContext(ctx).Where("phone = ?", phone).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
-}
-
-func (a *AuthRepositoryImpl) GetID(ctx context.Context, id int64) *User {
-	return &User{}
 }
 
 func (a *AuthRepositoryImpl) IsExists(ctx context.Context, phone string) bool {

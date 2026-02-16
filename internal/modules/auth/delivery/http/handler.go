@@ -24,6 +24,13 @@ func NewAuthHandler(usecase auth.AuthUsecase, logger *zap.Logger) *AuthHandler {
 	}
 }
 
+// @Router /api/auth/refresh [post]
+// @Accept json
+// @Produce json
+// @Tags auth
+// @Summary Refresh token
+// @Success 200 {object} dto.BaseResponse{data=auth.TokenDTO}
+// @Param request body auth.AuthRefreshTokenRequest true "Refresh token request"
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var payload auth.AuthRefreshTokenRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -44,11 +51,18 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	dto.JSON(c, http.StatusOK, auth.TokenDTO{
-		Access:  h.usecase.AccessToken(user),
-		Refresh: h.usecase.RefreshToken(user),
+		Access: h.usecase.AccessToken(user),
 	}, "")
 }
 
+// Register godoc
+// @Summary Login user
+// @Router /api/auth/login [post]
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.BaseResponse{data=auth.TokenDTO}
+// @Param request body auth.AuthLoginRequest true "Login form"
 func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
 	var payload auth.AuthLoginRequest

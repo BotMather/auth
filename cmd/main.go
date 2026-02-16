@@ -57,6 +57,7 @@ func main() {
 
 	// migrations
 	db.AutoMigrate(&auth.User{})
+	db.AutoMigrate(&auth.Otp{})
 
 	router := gin.Default()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
