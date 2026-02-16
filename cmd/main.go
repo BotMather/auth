@@ -11,6 +11,8 @@ import (
 	"github.com/JscorpTech/auth/internal/config"
 	"github.com/JscorpTech/auth/internal/modules/auth"
 	authHttp "github.com/JscorpTech/auth/internal/modules/auth/delivery/http"
+	"github.com/JscorpTech/auth/internal/services"
+	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/swaggo/files"
@@ -62,13 +64,30 @@ func main() {
 	router := gin.Default()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	api := router.Group("/api")
-	// api.Use(middlewares.RateLimiterPerIP())
+
+	limiter := utils.NewRateLimiter(ctx, logger, 100)
+
+	api.Use(func(c *gin.Context) {
+		ip := c.ClientIP()
+
+		if !limiter.Allow(ip) {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+				"status": false,
+				"error":  "Rate limit exceeded",
+			})
+			return
+		}
+
+		c.Next()
+	})
 
 	// Auth routes
 	authRepository := auth.NewAuthRepository(db)
 	authUsecase := auth.NewAuthUsecase(authRepository, cfg, logger)
 	authHandler := authHttp.NewAuthHandler(authUsecase, logger)
 	authHttp.RegisterAuthRoutes(cfg, api, authHandler)
+
+	go services.OtpClean(ctx, logger, authRepository)
 
 	srv := http.Server{
 		Handler: router,
@@ -81,7 +100,7 @@ func main() {
 	go func() {
 		logger.Info("Server ishga tushdi 🚀 " + cfg.Addr)
 		if err := srv.ListenAndServe(); err != nil {
-			panic(err)
+			logger.Info("Server to'xtatildi", zap.Error(err))
 		}
 	}()
 

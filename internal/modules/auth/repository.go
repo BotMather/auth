@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -15,6 +16,9 @@ type AuthRepository interface {
 	GetOtp(context.Context, string, string) (*Otp, error)
 	DeleteOtp(context.Context, *Otp)
 	CreateOtp(context.Context, string, string) (*Otp, error)
+	GetOtpByPhone(context.Context, string) (*Otp, error)
+	UpdateOtp(context.Context, string, string) error
+	GetOldOtps(context.Context) ([]Otp, error)
 }
 
 type AuthRepositoryImpl struct {
@@ -68,21 +72,42 @@ func (a *AuthRepositoryImpl) GetOtp(ctx context.Context, phone string, otp strin
 	return &otpInstance, nil
 }
 
+func (a *AuthRepositoryImpl) GetOtpByPhone(ctx context.Context, phone string) (*Otp, error) {
+	otp := &Otp{}
+	err := a.db.WithContext(ctx).Where("phone = ?", phone).First(otp).Error
+	if err != nil {
+		return nil, err
+	}
+	return otp, nil
+}
+
 func (a *AuthRepositoryImpl) DeleteOtp(ctx context.Context, otp *Otp) {
 	a.db.WithContext(ctx).Unscoped().Delete(otp)
 }
 
-func (a *AuthRepositoryImpl) CreateOtp(ctx context.Context, phone string, otp string) (*Otp, error) {
-	otpInstance := &Otp{}
-	err := a.db.WithContext(ctx).Where("phone = ?", phone).First(otpInstance).Error
-	if err != nil {
-		otpInstance = &Otp{Phone: phone, Code: otp}
-		if err := a.db.WithContext(ctx).Create(&otpInstance).Error; err != nil {
-			return nil, err
-		}
+func (a *AuthRepositoryImpl) CreateOtp(ctx context.Context, phone string, code string) (*Otp, error) {
+	otp := &Otp{
+		Phone: phone,
+		Code:  code,
 	}
-	if err := a.db.WithContext(ctx).Model(otpInstance).Update("code", otp).Error; err != nil {
+	if err := a.db.WithContext(ctx).Create(otp).Error; err != nil {
 		return nil, err
 	}
-	return otpInstance, nil
+	return otp, nil
+}
+
+func (a *AuthRepositoryImpl) UpdateOtp(ctx context.Context, phone string, code string) error {
+	if err := a.db.WithContext(ctx).Model(&Otp{}).Where("phone = ?", phone).Update("code", code).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *AuthRepositoryImpl) GetOldOtps(ctx context.Context) ([]Otp, error) {
+	var otps []Otp
+	twoTimeAgo := time.Now().Add(-2 * time.Minute)
+	if err := a.db.WithContext(ctx).Model(&Otp{}).Where("updated_at <= ?", twoTimeAgo).Find(&otps).Error; err != nil {
+		return nil, err
+	}
+	return otps, nil
 }

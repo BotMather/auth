@@ -22,9 +22,9 @@ func (*User) TableName() string {
 
 type Otp struct {
 	gorm.Model
-	Phone string `gorm:"phone;unique"`
-	Code  string `gorm:"code"`
-	Exp   string `gorm:"exp"`
+	Phone string    `gorm:"phone;unique"`
+	Code  string    `gorm:"code"`
+	Exp   time.Time `gorm:"exp"`
 }
 
 func (*Otp) TableName() string {

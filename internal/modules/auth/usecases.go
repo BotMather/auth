@@ -82,7 +82,7 @@ func (a *AuthUsecaseImpl) Register(ctx context.Context, user *User) (*User, erro
 		userInstance, err = a.repo.Create(ctx, user)
 	}
 	if err := a.SendOtp(ctx, user.Phone); err != nil {
-		return nil, errors.New("Send otp error")
+		return nil, err
 	}
 	if err != nil {
 		return nil, err
@@ -119,10 +119,21 @@ func (a *AuthUsecaseImpl) RefreshToken(user *User) string {
 }
 
 func (a *AuthUsecaseImpl) SendOtp(ctx context.Context, phone string) error {
-	otp := utils.RandomOtp(6)
-	a.logger.Info("New otp", zap.String("otp", otp))
-	_, err := a.repo.CreateOtp(ctx, phone, otp)
-	return err
+	code := utils.RandomOtp(6)
+	a.logger.Info("New otp", zap.String("otp", code))
+	otp, err := a.repo.GetOtpByPhone(ctx, phone)
+	if err != nil {
+		otp, err = a.repo.CreateOtp(ctx, phone, code)
+		if err != nil {
+			return err
+		}
+	} else if time.Since(otp.UpdatedAt) < time.Minute*2 {
+		return errors.New("It takes 2 minutes to resend the SMS.")
+	}
+	if err := a.repo.UpdateOtp(ctx, phone, code); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *AuthUsecaseImpl) ValidateOtp(ctx context.Context, phone string, otp string) bool {
