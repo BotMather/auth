@@ -9,6 +9,7 @@ import (
 	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type AuthUsecase interface {
@@ -57,6 +58,9 @@ func (a *AuthUsecaseImpl) ValidateToken(token string) (*jwt.MapClaims, error) {
 func (a *AuthUsecaseImpl) Login(ctx context.Context, phone string, password string) (*User, error) {
 	user, err := a.repo.GetByPhone(ctx, phone)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrInvalidCredentions
+		}
 		return nil, err
 	}
 	if !a.IsConfirm(ctx, user) {
@@ -128,7 +132,7 @@ func (a *AuthUsecaseImpl) SendOtp(ctx context.Context, phone string) error {
 			return err
 		}
 	} else if time.Since(otp.UpdatedAt) < time.Minute*2 {
-		return errors.New("It takes 2 minutes to resend the SMS.")
+		return ErrRateLimit
 	}
 	if err := a.repo.UpdateOtp(ctx, phone, code); err != nil {
 		return err
