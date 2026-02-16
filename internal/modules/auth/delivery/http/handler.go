@@ -61,7 +61,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Success 200 {object} dto.BaseResponse{data=auth.TokenDTO}
+// @Success 200 {object} dto.BaseResponse{data=auth.AuthLoginResponse}
 // @Param request body auth.AuthLoginRequest true "Login form"
 func (h *AuthHandler) Login(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -72,12 +72,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 	user, err := h.usecase.Login(ctx, payload.Phone, payload.Password)
 	if err != nil {
-		dto.JSON(c, http.StatusUnauthorized, nil, "Invalid credentials")
+		dto.JSON(c, http.StatusUnauthorized, nil, err.Error())
 		return
 	}
-	dto.JSON(c, http.StatusOK, auth.TokenDTO{
-		Access:  h.usecase.AccessToken(user),
-		Refresh: h.usecase.RefreshToken(user),
+	dto.JSON(c, http.StatusOK, auth.AuthLoginResponse{
+		Token: auth.TokenDTO{
+			Access:  h.usecase.AccessToken(user),
+			Refresh: h.usecase.RefreshToken(user),
+		},
+		User: auth.UserDTO{
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			Phone:     user.Phone,
+			Role:      user.Role,
+			ID:        user.ID,
+		},
 	}, "")
 }
 
@@ -119,7 +128,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	userModel := auth.User{
 		FirstName: userPayload.FirstName,
 		LastName:  userPayload.LastName,
-		Email:     userPayload.Email,
 		Phone:     userPayload.Phone,
 		Password:  password,
 	}
@@ -128,5 +136,39 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		dto.JSON(c, http.StatusBadRequest, nil, err.Error())
 		return
 	}
-	dto.JSON(c, http.StatusOK, auth.ToRegisterResponse(user, h.usecase.AccessToken(user), h.usecase.RefreshToken(user)), "")
+	dto.JSON(
+		c, http.StatusOK,
+		auth.ToRegisterResponse(user, "Tasdiqlash ko'di yuborildi"),
+		"",
+	)
+}
+
+// @Router /api/auth/confirm [post]
+// @Summary Confirm phone number
+// @Accept json
+// @Produce json
+// @Param request body auth.AuthConfirmRequest true "Confirm request"
+// @Tags auth
+// @Success 200 {object} dto.BaseResponse{data=auth.TokenDTO}
+func (h *AuthHandler) Confirm(c *gin.Context) {
+	var payload auth.AuthConfirmRequest
+	ctx := c.Request.Context()
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		dto.JSON(c, http.StatusBadRequest, utils.FormatValidationErrors(err, &payload), "Validation error")
+		return
+	}
+	if isValid := h.usecase.ValidateOtp(ctx, payload.Phone, payload.Otp); !isValid {
+		dto.JSON(c, http.StatusForbidden, nil, "Invalid otp")
+		return
+	}
+	user, err := h.usecase.GetUserByPhone(ctx, payload.Phone)
+	if err != nil {
+		dto.JSON(c, http.StatusBadRequest, nil, "Invalid phone number")
+		return
+	}
+	h.usecase.Confirm(ctx, user)
+	dto.JSON(c, 200, auth.TokenDTO{
+		Access:  h.usecase.AccessToken(user),
+		Refresh: h.usecase.RefreshToken(user),
+	}, "")
 }

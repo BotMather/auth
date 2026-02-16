@@ -8,6 +8,7 @@ import (
 	"github.com/JscorpTech/auth/internal/config"
 	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 )
 
 type AuthUsecase interface {
@@ -17,18 +18,29 @@ type AuthUsecase interface {
 	ValidateToken(string) (*jwt.MapClaims, error)
 	AccessToken(*User) string
 	RefreshToken(*User) string
+	SendOtp(context.Context, string) error
+	ValidateOtp(context.Context, string, string) bool
+	IsConfirm(context.Context, *User) bool
+	GetUserByPhone(context.Context, string) (*User, error)
+	Confirm(context.Context, *User)
 }
 
 type AuthUsecaseImpl struct {
-	repo AuthRepository
-	cfg  *config.Config
+	repo   AuthRepository
+	cfg    *config.Config
+	logger *zap.Logger
 }
 
-func NewAuthUsecase(repo AuthRepository, cfg *config.Config) AuthUsecase {
+func NewAuthUsecase(repo AuthRepository, cfg *config.Config, logger *zap.Logger) AuthUsecase {
 	return &AuthUsecaseImpl{
-		repo: repo,
-		cfg:  cfg,
+		repo:   repo,
+		cfg:    cfg,
+		logger: logger,
 	}
+}
+
+func (a *AuthUsecaseImpl) IsConfirm(ctx context.Context, user *User) bool {
+	return user.ValidatedAT != nil
 }
 
 func (a *AuthUsecaseImpl) ValidateToken(token string) (*jwt.MapClaims, error) {
@@ -47,8 +59,12 @@ func (a *AuthUsecaseImpl) Login(ctx context.Context, phone string, password stri
 	if err != nil {
 		return nil, err
 	}
+	if !a.IsConfirm(ctx, user) {
+		return nil, ErrPhoneNumberNotConfirmed
+	}
+
 	if res := utils.CheckPasswordHash(password, user.Password); !res {
-		return nil, errors.New("Invalid password")
+		return nil, ErrInvalidPassword
 	}
 	return user, nil
 }
@@ -58,14 +74,20 @@ func (a *AuthUsecaseImpl) IsExists(ctx context.Context, phone string) bool {
 }
 
 func (a *AuthUsecaseImpl) Register(ctx context.Context, user *User) (*User, error) {
-	if a.repo.IsExists(ctx, user.Phone) {
+	userInstance, err := a.repo.GetByPhone(ctx, user.Phone)
+	if err == nil && a.IsConfirm(ctx, userInstance) {
 		return nil, ErrUserAlreadyExists
 	}
-	user, err := a.repo.Create(ctx, user)
+	if err != nil {
+		userInstance, err = a.repo.Create(ctx, user)
+	}
+	if err := a.SendOtp(ctx, user.Phone); err != nil {
+		return nil, errors.New("Send otp error")
+	}
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return userInstance, nil
 }
 
 func (a *AuthUsecaseImpl) AccessToken(user *User) string {
@@ -94,4 +116,31 @@ func (a *AuthUsecaseImpl) RefreshToken(user *User) string {
 		return ""
 	}
 	return token
+}
+
+func (a *AuthUsecaseImpl) SendOtp(ctx context.Context, phone string) error {
+	otp := utils.RandomOtp(6)
+	a.logger.Info("New otp", zap.String("otp", otp))
+	_, err := a.repo.CreateOtp(ctx, phone, otp)
+	return err
+}
+
+func (a *AuthUsecaseImpl) ValidateOtp(ctx context.Context, phone string, otp string) bool {
+	otpInstance, err := a.repo.GetOtp(ctx, phone, otp)
+	if err != nil {
+		a.logger.Info("invalid otp", zap.Error(err))
+		return false
+	}
+	a.repo.DeleteOtp(ctx, otpInstance)
+	return true
+}
+
+func (a *AuthUsecaseImpl) GetUserByPhone(ctx context.Context, phone string) (*User, error) {
+	return a.repo.GetByPhone(ctx, phone)
+}
+
+func (a *AuthUsecaseImpl) Confirm(ctx context.Context, user *User) {
+	a.repo.Update(ctx, user, map[string]any{
+		"validated_at": time.Now(),
+	})
 }

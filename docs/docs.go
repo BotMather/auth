@@ -24,6 +24,51 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/confirm": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Confirm phone number",
+                "parameters": [
+                    {
+                        "description": "Confirm request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.AuthConfirmRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/auth.TokenDTO"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/login": {
             "post": {
                 "consumes": [
@@ -59,7 +104,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/auth.TokenDTO"
+                                            "$ref": "#/definitions/auth.AuthLoginResponse"
                                         }
                                     }
                                 }
@@ -196,6 +241,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.AuthConfirmRequest": {
+            "type": "object",
+            "required": [
+                "otp",
+                "phone"
+            ],
+            "properties": {
+                "otp": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "auth.AuthLoginRequest": {
             "type": "object",
             "required": [
@@ -208,6 +268,17 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                }
+            }
+        },
+        "auth.AuthLoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "$ref": "#/definitions/auth.TokenDTO"
+                },
+                "user": {
+                    "$ref": "#/definitions/auth.UserDTO"
                 }
             }
         },
@@ -260,8 +331,8 @@ const docTemplate = `{
         "auth.AuthRegisterResponse": {
             "type": "object",
             "properties": {
-                "token": {
-                    "$ref": "#/definitions/auth.TokenDTO"
+                "message": {
+                    "type": "string"
                 },
                 "user": {
                     "$ref": "#/definitions/auth.UserDTO"
@@ -282,9 +353,6 @@ const docTemplate = `{
         "auth.UserDTO": {
             "type": "object",
             "properties": {
-                "email": {
-                    "type": "string"
-                },
                 "first_name": {
                     "type": "string"
                 },

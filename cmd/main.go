@@ -65,7 +65,7 @@ func main() {
 
 	// Auth routes
 	authRepository := auth.NewAuthRepository(db)
-	authUsecase := auth.NewAuthUsecase(authRepository, cfg)
+	authUsecase := auth.NewAuthUsecase(authRepository, cfg, logger)
 	authHandler := authHttp.NewAuthHandler(authUsecase, logger)
 	authHttp.RegisterAuthRoutes(cfg, api, authHandler)
 

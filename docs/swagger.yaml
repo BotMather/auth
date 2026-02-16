@@ -1,5 +1,15 @@
 basePath: /api/v1
 definitions:
+  auth.AuthConfirmRequest:
+    properties:
+      otp:
+        type: string
+      phone:
+        type: string
+    required:
+    - otp
+    - phone
+    type: object
   auth.AuthLoginRequest:
     properties:
       password:
@@ -9,6 +19,13 @@ definitions:
     required:
     - password
     - phone
+    type: object
+  auth.AuthLoginResponse:
+    properties:
+      token:
+        $ref: '#/definitions/auth.TokenDTO'
+      user:
+        $ref: '#/definitions/auth.UserDTO'
     type: object
   auth.AuthMeResponse:
     properties:
@@ -43,8 +60,8 @@ definitions:
     type: object
   auth.AuthRegisterResponse:
     properties:
-      token:
-        $ref: '#/definitions/auth.TokenDTO'
+      message:
+        type: string
       user:
         $ref: '#/definitions/auth.UserDTO'
     type: object
@@ -57,8 +74,6 @@ definitions:
     type: object
   auth.UserDTO:
     properties:
-      email:
-        type: string
       first_name:
         type: string
       id:
@@ -95,6 +110,32 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /api/auth/confirm:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Confirm request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.AuthConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.BaseResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.TokenDTO'
+              type: object
+      summary: Confirm phone number
+      tags:
+      - auth
   /api/auth/login:
     post:
       consumes:
@@ -116,7 +157,7 @@ paths:
             - $ref: '#/definitions/dto.BaseResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/auth.TokenDTO'
+                  $ref: '#/definitions/auth.AuthLoginResponse'
               type: object
       summary: Login user
       tags:

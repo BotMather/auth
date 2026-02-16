@@ -10,7 +10,6 @@ type User struct {
 	gorm.Model
 	FirstName   string     `gorm:"first_name"`
 	LastName    string     `gorm:"last_name"`
-	Email       string     `gorm:"email;unique"`
 	Phone       string     `gorm:"phone;unique"`
 	Password    string     `gorm:"password"`
 	ValidatedAT *time.Time `gorm:"validated_at"`
@@ -24,7 +23,7 @@ func (*User) TableName() string {
 type Otp struct {
 	gorm.Model
 	Phone string `gorm:"phone;unique"`
-	Code  int    `gorm:"code"`
+	Code  string `gorm:"code"`
 	Exp   string `gorm:"exp"`
 }
 

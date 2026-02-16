@@ -5,12 +5,17 @@ type AuthLoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type AuthLoginResponse struct {
+type UserDTO struct {
+	ID        uint   `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Role      string `json:"role"`
+}
+
+type AuthLoginResponse struct {
+	User  UserDTO  `json:"user"`
+	Token TokenDTO `json:"token"`
 }
 
 type AuthMeResponse struct {
@@ -32,14 +37,6 @@ type AuthRegisterRequest struct {
 	Phone     string `json:"phone" binding:"required"`
 	Password  string `json:"password" binding:"required,min=8"`
 }
-type UserDTO struct {
-	ID        uint   `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
-	Role      string `json:"role"`
-}
 
 type TokenDTO struct {
 	Access  string `json:"access"`
@@ -47,22 +44,23 @@ type TokenDTO struct {
 }
 
 type AuthRegisterResponse struct {
-	User  UserDTO  `json:"user"`
-	Token TokenDTO `json:"token"`
+	User    UserDTO `json:"user"`
+	Message string  `json:"message"`
 }
 
-func ToRegisterResponse(user *User, access string, refresh string) *AuthRegisterResponse {
+type AuthConfirmRequest struct {
+	Phone string `json:"phone" binding:"required"`
+	Otp   string `json:"otp" binding:"required"`
+}
+
+func ToRegisterResponse(user *User, msg string) *AuthRegisterResponse {
 	return &AuthRegisterResponse{
 		User: UserDTO{
 			ID:        user.ID,
 			FirstName: user.FirstName,
 			LastName:  user.LastName,
-			Email:     user.Email,
 			Phone:     user.Phone,
 		},
-		Token: TokenDTO{
-			Access:  access,
-			Refresh: refresh,
-		},
+		Message: msg,
 	}
 }
