@@ -29,7 +29,7 @@ type User struct {
 }
 
 func (*User) TableName() string {
-	return "users"
+	return "account_user"
 }
 
 type Otp struct {
