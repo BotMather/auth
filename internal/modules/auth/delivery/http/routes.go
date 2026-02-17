@@ -13,6 +13,7 @@ func RegisterAuthRoutes(cfg *config.Config, router *gin.RouterGroup, h *AuthHand
 		public.POST("/register", h.Register)
 		public.POST("/refresh", h.RefreshToken)
 		public.POST("/confirm", h.Confirm)
+		public.POST("/google", h.Google)
 	}
 	private := router.Group("/auth")
 	private.Use(middlewares.AuthMiddleware(cfg))

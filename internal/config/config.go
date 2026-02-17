@@ -3,11 +3,12 @@ package config
 import "os"
 
 type Config struct {
-	PrivateKey []byte
-	PublicKey  []byte
-	Addr       string
-	AccessExp  int64
-	RefreshExp int64
+	PrivateKey     []byte
+	PublicKey      []byte
+	Addr           string
+	AccessExp      int64
+	RefreshExp     int64
+	GoogleClientID string
 }
 
 func NewConfig() *Config {
@@ -21,10 +22,11 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		PrivateKey: privKey,
-		PublicKey:  pubKey,
-		Addr:       os.Getenv("ADDR"),
-		AccessExp:  60,
-		RefreshExp: 43200,
+		PrivateKey:     privKey,
+		PublicKey:      pubKey,
+		Addr:           os.Getenv("ADDR"),
+		AccessExp:      60,
+		RefreshExp:     43200,
+		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
 	}
 }

@@ -6,11 +6,12 @@ type AuthLoginRequest struct {
 }
 
 type UserDTO struct {
-	ID        uint   `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Phone     string `json:"phone"`
-	Role      string `json:"role"`
+	ID        uint    `json:"id"`
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	Phone     *string `json:"phone"`
+	Email     *string `json:"email"`
+	Role      string  `json:"role"`
 }
 
 type AuthLoginResponse struct {
@@ -31,11 +32,11 @@ type AuthRefreshTokenResponse struct {
 }
 
 type AuthRegisterRequest struct {
-	FirstName string `json:"first_name" binding:"required"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone" binding:"required"`
-	Password  string `json:"password" binding:"required,min=8"`
+	FirstName string  `json:"first_name" binding:"required"`
+	LastName  string  `json:"last_name"`
+	Email     *string `json:"email"`
+	Phone     *string `json:"phone" binding:"required"`
+	Password  string  `json:"password" binding:"required,min=8"`
 }
 
 type TokenDTO struct {
@@ -51,6 +52,10 @@ type AuthRegisterResponse struct {
 type AuthConfirmRequest struct {
 	Phone string `json:"phone" binding:"required"`
 	Otp   string `json:"otp" binding:"required"`
+}
+
+type GoogleAuthRequest struct {
+	IDToken string `json:"id_token" binding:"required"`
 }
 
 func ToRegisterResponse(user *User, msg string) *AuthRegisterResponse {

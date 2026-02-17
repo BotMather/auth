@@ -9,6 +9,7 @@ import (
 	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
+	"google.golang.org/api/idtoken"
 	"gorm.io/gorm"
 )
 
@@ -24,6 +25,8 @@ type AuthUsecase interface {
 	IsConfirm(context.Context, *User) bool
 	GetUserByPhone(context.Context, string) (*User, error)
 	Confirm(context.Context, *User)
+	ValidateGoogleIDToken(context.Context, string) (*idtoken.Payload, error)
+	GoogleAuth(context.Context, string) (*User, error)
 }
 
 type AuthUsecaseImpl struct {
@@ -38,6 +41,45 @@ func NewAuthUsecase(repo AuthRepository, cfg *config.Config, logger *zap.Logger)
 		cfg:    cfg,
 		logger: logger,
 	}
+}
+
+func (a *AuthUsecaseImpl) GoogleAuth(ctx context.Context, idToken string) (*User, error) {
+	payload, err := a.ValidateGoogleIDToken(ctx, idToken)
+	if err != nil {
+		return nil, err
+	}
+	email, ok := payload.Claims["email"].(string)
+	if !ok {
+		return nil, errors.New("email claim not found in ID token")
+	}
+	userInstance, err := a.repo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			firstName, _ := payload.Claims["given_name"].(string)
+			lastName, _ := payload.Claims["family_name"].(string)
+			now := time.Now()
+			user := &User{
+				Email:       &email,
+				FirstName:   firstName,
+				LastName:    lastName,
+				ValidatedAT: &now,
+			}
+			if userInstance, err = a.repo.Create(ctx, user); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	return userInstance, nil
+}
+
+func (a *AuthUsecaseImpl) ValidateGoogleIDToken(ctx context.Context, idToken string) (*idtoken.Payload, error) {
+	claims, err := idtoken.Validate(ctx, idToken, a.cfg.GoogleClientID)
+	if err != nil {
+		return nil, err
+	}
+	return claims, nil
 }
 
 func (a *AuthUsecaseImpl) IsConfirm(ctx context.Context, user *User) bool {
@@ -78,14 +120,14 @@ func (a *AuthUsecaseImpl) IsExists(ctx context.Context, phone string) bool {
 }
 
 func (a *AuthUsecaseImpl) Register(ctx context.Context, user *User) (*User, error) {
-	userInstance, err := a.repo.GetByPhone(ctx, user.Phone)
+	userInstance, err := a.repo.GetByPhone(ctx, *user.Phone)
 	if err == nil && a.IsConfirm(ctx, userInstance) {
 		return nil, ErrUserAlreadyExists
 	}
 	if err != nil {
 		userInstance, err = a.repo.Create(ctx, user)
 	}
-	if err := a.SendOtp(ctx, user.Phone); err != nil {
+	if err := a.SendOtp(ctx, *user.Phone); err != nil {
 		return nil, err
 	}
 	if err != nil {

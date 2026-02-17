@@ -24,6 +24,34 @@ func NewAuthHandler(usecase auth.AuthUsecase, logger *zap.Logger) *AuthHandler {
 	}
 }
 
+func (h *AuthHandler) Google(c *gin.Context) {
+	var payload auth.GoogleAuthRequest
+	ctx := c.Request.Context()
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		dto.JSON(c, http.StatusBadRequest, utils.FormatValidationErrors(err, &payload), "Invalid request")
+		return
+	}
+	user, err := h.usecase.GoogleAuth(ctx, payload.IDToken)
+	if err != nil {
+		dto.JSON(c, http.StatusUnauthorized, nil, "Invalid Google ID token")
+		return
+	}
+	dto.JSON(c, http.StatusOK, auth.AuthLoginResponse{
+		Token: auth.TokenDTO{
+			Access:  h.usecase.AccessToken(user),
+			Refresh: h.usecase.RefreshToken(user),
+		},
+		User: auth.UserDTO{
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			Phone:     user.Phone,
+			Email:     user.Email,
+			Role:      user.Role,
+			ID:        user.ID,
+		},
+	}, "")
+}
+
 // @Router /api/auth/refresh [post]
 // @Accept json
 // @Produce json

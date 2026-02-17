@@ -13,6 +13,7 @@ type AuthRepository interface {
 	Create(context.Context, *User) (*User, error)
 	IsExists(context.Context, string) bool
 	GetByPhone(context.Context, string) (*User, error)
+	GetByEmail(context.Context, string) (*User, error)
 	GetOtp(context.Context, string, string) (*Otp, error)
 	DeleteOtp(context.Context, *Otp)
 	CreateOtp(context.Context, string, string) (*Otp, error)
@@ -29,6 +30,14 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 	return &AuthRepositoryImpl{
 		db: db,
 	}
+}
+
+func (a *AuthRepositoryImpl) GetByEmail(ctx context.Context, email string) (*User, error) {
+	var user User
+	if err := a.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (a *AuthRepositoryImpl) GetID(ctx context.Context, id int64) *User {
