@@ -8,7 +8,7 @@ import (
 )
 
 type AuthRepository interface {
-	GetID(context.Context, int64) *User
+	GetID(context.Context, int64) (*User, error)
 	Update(context.Context, *User, map[string]any)
 	Create(context.Context, *User) (*User, error)
 	IsExists(context.Context, string) bool
@@ -40,12 +40,12 @@ func (a *AuthRepositoryImpl) GetByEmail(ctx context.Context, email string) (*Use
 	return &user, nil
 }
 
-func (a *AuthRepositoryImpl) GetID(ctx context.Context, id int64) *User {
+func (a *AuthRepositoryImpl) GetID(ctx context.Context, id int64) (*User, error) {
 	var user User
 	if err := a.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
-		return nil
+		return nil, err
 	}
-	return &user
+	return &user, nil
 }
 
 func (a *AuthRepositoryImpl) GetByPhone(ctx context.Context, phone string) (*User, error) {

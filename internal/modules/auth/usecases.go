@@ -17,6 +17,7 @@ type AuthUsecase interface {
 	Login(context.Context, string, string) (*User, error)
 	Register(context.Context, *User) (*User, error)
 	IsExists(context.Context, string) bool
+	GetUserByID(context.Context, int64) (*User, error)
 	ValidateToken(string) (*jwt.MapClaims, error)
 	AccessToken(*User) string
 	RefreshToken(*User) string
@@ -41,6 +42,10 @@ func NewAuthUsecase(repo AuthRepository, cfg *config.Config, logger *zap.Logger)
 		cfg:    cfg,
 		logger: logger,
 	}
+}
+
+func (a *AuthUsecaseImpl) GetUserByID(ctx context.Context, id int64) (*User, error) {
+	return a.repo.GetID(ctx, id)
 }
 
 func (a *AuthUsecaseImpl) GoogleAuth(ctx context.Context, idToken string) (*User, error) {
@@ -145,6 +150,7 @@ func (a *AuthUsecaseImpl) AccessToken(user *User) string {
 	}
 	token, err := utils.CreateJWT(claims, a.cfg.PrivateKey)
 	if err != nil {
+		a.logger.Error("create access token error", zap.Error(err))
 		return ""
 	}
 	return token
@@ -159,6 +165,7 @@ func (a *AuthUsecaseImpl) RefreshToken(user *User) string {
 	}
 	token, err := utils.CreateJWT(claims, a.cfg.PrivateKey)
 	if err != nil {
+		a.logger.Error("create refresh token error", zap.Error(err))
 		return ""
 	}
 	return token

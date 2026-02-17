@@ -112,9 +112,20 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} dto.BaseResponse{data=auth.AuthMeResponse}
 func (h *AuthHandler) Me(c *gin.Context) {
-	user := c.MustGet("user").(jwt.MapClaims)
+	claims := c.MustGet("user").(jwt.MapClaims)
+	ctx := c.Request.Context()
+	userID, ok := claims["user_id"]
+	if !ok {
+		dto.JSON(c, http.StatusInternalServerError, nil, "User id not found")
+		return
+	}
+	user, err := h.usecase.GetUserByID(ctx, int64(userID.(float64)))
+	if err != nil {
+		dto.JSON(c, http.StatusBadRequest, nil, "User not found")
+		return
+	}
 	dto.JSON(c, http.StatusOK, auth.AuthMeResponse{
-		User: user,
+		User: auth.ToUser(user),
 	}, "")
 }
 

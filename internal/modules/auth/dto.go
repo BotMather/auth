@@ -23,7 +23,7 @@ type AuthLoginResponse struct {
 }
 
 type AuthMeResponse struct {
-	User map[string]any `json:"user"`
+	User UserDTO `json:"user"`
 }
 
 type AuthRefreshTokenRequest struct {
