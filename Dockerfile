@@ -15,7 +15,7 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates tzdata curl
 WORKDIR /root/
-COPY --from=builder /app/websocket-service .
+COPY --from=builder /app/auth .
 EXPOSE 8080
 CMD ["./auth"]
 
