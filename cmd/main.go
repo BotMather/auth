@@ -72,7 +72,7 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	api := router.Group("/api")
+	api := router.Group("/api/v1")
 
 	limiter := utils.NewRateLimiter(ctx, logger, 100)
 
