@@ -16,16 +16,16 @@ var (
 
 type User struct {
 	gorm.Model
-	FirstName       string     `gorm:"first_name"`
-	LastName        string     `gorm:"last_name"`
-	Phone           *string    `gorm:"phone;default:null;uniqueIndex"`
-	Email           *string    `gorm:"email;default:null;uniqueIndex"`
-	UserName        *string    `gorm:"username;uniqueIndex;default:null"`
-	Balance         int        `gorm:"balance"`
-	TemplateBalance string     `gorm:"template_balance"`
-	Password        string     `gorm:"password"`
-	ValidatedAT     *time.Time `gorm:"validated_at"`
-	Role            Role       `gorm:"role;default:user"`
+	FirstName       string     `gorm:"column:first_name"`
+	LastName        string     `gorm:"column:last_name"`
+	Phone           *string    `gorm:"column:phone;default:null;uniqueIndex"`
+	Email           *string    `gorm:"column:email;default:null;uniqueIndex"`
+	UserName        *string    `gorm:"column:username;uniqueIndex;default:null"`
+	Balance         int        `gorm:"column:balance"`
+	TemplateBalance string     `gorm:"column:template_balance"`
+	Password        string     `gorm:"column:password"`
+	ValidatedAT     *time.Time `gorm:"column:validated_at"`
+	Role            Role       `gorm:"column:role;default:user"`
 }
 
 func (*User) TableName() string {
