@@ -9,13 +9,20 @@ import (
 	"github.com/JscorpTech/auth/internal/dto"
 	"github.com/JscorpTech/auth/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
-func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
+func AuthMiddleware(cfg *config.Config, logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenRaw := c.Request.Header.Get("Authorization")
 		token := strings.Replace(tokenRaw, "Bearer ", "", 1)
 		claims, err := utils.VerifyJWT(token, cfg.PublicKey)
+
+		if err != nil {
+			dto.JSON(c, http.StatusUnauthorized, nil, err.Error())
+			c.Abort()
+			return
+		}
 
 		exp, ok := claims["exp"]
 		if !ok {
@@ -28,7 +35,7 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if err != nil || claims["type"] != "access" {
+		if claims["token_type"] != "access" {
 			dto.JSON(c, http.StatusUnauthorized, nil, "Invalid token")
 			c.Abort()
 			return

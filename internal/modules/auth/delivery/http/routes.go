@@ -16,7 +16,7 @@ func RegisterAuthRoutes(cfg *config.Config, router *gin.RouterGroup, h *AuthHand
 		public.POST("/google", h.Google)
 	}
 	private := router.Group("/auth")
-	private.Use(middlewares.AuthMiddleware(cfg))
+	private.Use(middlewares.AuthMiddleware(cfg, h.logger))
 	{
 		private.GET("/me", h.Me)
 	}
