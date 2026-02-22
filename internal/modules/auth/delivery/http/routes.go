@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterAuthRoutes(cfg *config.Config, router *gin.RouterGroup, h *AuthHandler) {
-	public := router.Group("/auth")
+	public := router.Group("")
 	{
 		public.POST("/login", h.Login)
 		public.POST("/register", h.Register)
@@ -15,7 +15,7 @@ func RegisterAuthRoutes(cfg *config.Config, router *gin.RouterGroup, h *AuthHand
 		public.POST("/confirm", h.Confirm)
 		public.POST("/google", h.Google)
 	}
-	private := router.Group("/auth")
+	private := router.Group("")
 	private.Use(middlewares.AuthMiddleware(cfg, h.logger))
 	{
 		private.GET("/me", h.Me)

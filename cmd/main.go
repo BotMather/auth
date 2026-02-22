@@ -71,8 +71,9 @@ func main() {
 	db.AutoMigrate(&auth.Otp{})
 
 	router := gin.Default()
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	api := router.Group("/api/v1")
+
+	router.GET("/api/v1/auth/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	api := router.Group("/api/v1/auth")
 
 	limiter := utils.NewRateLimiter(ctx, logger, 100)
 
