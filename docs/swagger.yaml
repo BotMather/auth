@@ -30,8 +30,7 @@ definitions:
   auth.AuthMeResponse:
     properties:
       user:
-        additionalProperties: {}
-        type: object
+        $ref: '#/definitions/auth.UserDTO'
     type: object
   auth.AuthRefreshTokenRequest:
     properties:
@@ -125,7 +124,7 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /api/auth/confirm:
+  /api/auth/v1/confirm:
     post:
       consumes:
       - application/json
@@ -151,7 +150,7 @@ paths:
       summary: Confirm phone number
       tags:
       - auth
-  /api/auth/google:
+  /api/auth/v1/google:
     post:
       consumes:
       - application/json
@@ -177,7 +176,7 @@ paths:
       summary: Google authentication
       tags:
       - auth
-  /api/auth/login:
+  /api/auth/v1/login:
     post:
       consumes:
       - application/json
@@ -203,7 +202,7 @@ paths:
       summary: Login user
       tags:
       - auth
-  /api/auth/me:
+  /api/auth/v1/me:
     get:
       consumes:
       - application/json
@@ -222,7 +221,7 @@ paths:
       summary: Get user profile
       tags:
       - auth
-  /api/auth/refresh:
+  /api/auth/v1/refresh:
     post:
       consumes:
       - application/json
@@ -248,7 +247,7 @@ paths:
       summary: Refresh token
       tags:
       - auth
-  /api/auth/register:
+  /api/auth/v1/register:
     post:
       consumes:
       - application/json

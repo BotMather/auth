@@ -24,7 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/auth/confirm": {
+        "/api/auth/v1/confirm": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -69,7 +69,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/google": {
+        "/api/auth/v1/google": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -114,7 +114,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/login": {
+        "/api/auth/v1/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -159,7 +159,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/me": {
+        "/api/auth/v1/me": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -193,7 +193,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/refresh": {
+        "/api/auth/v1/refresh": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -238,7 +238,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/register": {
+        "/api/auth/v1/register": {
             "post": {
                 "description": "Create new user",
                 "consumes": [
@@ -331,8 +331,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "user": {
-                    "type": "object",
-                    "additionalProperties": {}
+                    "$ref": "#/definitions/auth.UserDTO"
                 }
             }
         },

@@ -18,7 +18,7 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
-        "/api/auth/confirm": {
+        "/api/auth/v1/confirm": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -63,7 +63,7 @@
                 }
             }
         },
-        "/api/auth/google": {
+        "/api/auth/v1/google": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -108,7 +108,7 @@
                 }
             }
         },
-        "/api/auth/login": {
+        "/api/auth/v1/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -153,7 +153,7 @@
                 }
             }
         },
-        "/api/auth/me": {
+        "/api/auth/v1/me": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -187,7 +187,7 @@
                 }
             }
         },
-        "/api/auth/refresh": {
+        "/api/auth/v1/refresh": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -232,7 +232,7 @@
                 }
             }
         },
-        "/api/auth/register": {
+        "/api/auth/v1/register": {
             "post": {
                 "description": "Create new user",
                 "consumes": [
@@ -325,8 +325,7 @@
             "type": "object",
             "properties": {
                 "user": {
-                    "type": "object",
-                    "additionalProperties": {}
+                    "$ref": "#/definitions/auth.UserDTO"
                 }
             }
         },
