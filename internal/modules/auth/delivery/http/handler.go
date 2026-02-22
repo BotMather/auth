@@ -24,7 +24,7 @@ func NewAuthHandler(usecase auth.AuthUsecase, logger *zap.Logger) *AuthHandler {
 	}
 }
 
-// @Router /api/auth/google [post]
+// @Router /api/auth/v1/google [post]
 // @Accept json
 // @Produce json
 // @Tags auth
@@ -49,7 +49,7 @@ func (h *AuthHandler) Google(c *gin.Context) {
 	}, "")
 }
 
-// @Router /api/auth/refresh [post]
+// @Router /api/auth/v1/refresh [post]
 // @Accept json
 // @Produce json
 // @Tags auth
@@ -80,7 +80,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 // Register godoc
 // @Summary Login user
-// @Router /api/auth/login [post]
+// @Router /api/auth/v1/login [post]
 // @Tags auth
 // @Accept json
 // @Produce json
@@ -106,7 +106,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 // Register godoc
 // @Summary Get user profile
-// @Router /api/auth/me [get]
+// @Router /api/auth/v1/me [get]
 // @Tags auth
 // @Accept json
 // @Produce json
@@ -135,7 +135,7 @@ func (h *AuthHandler) Me(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Router /api/auth/register [post]
+// @Router /api/auth/v1/register [post]
 // @Success 200 {object} dto.BaseResponse{data=auth.AuthRegisterResponse}
 // @Param request body auth.AuthRegisterRequest true "Register request"
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -168,7 +168,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	)
 }
 
-// @Router /api/auth/confirm [post]
+// @Router /api/auth/v1/confirm [post]
 // @Summary Confirm phone number
 // @Accept json
 // @Produce json
