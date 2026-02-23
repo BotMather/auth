@@ -25,6 +25,7 @@ type User struct {
 	TemplateBalance string     `gorm:"column:template_balance;default:0"`
 	IsSuperuser     *bool      `gorm:"column:is_superuser;default:false"`
 	IsStaff         *bool      `gorm:"column:is_staff;default:false"`
+	IsActive        *bool      `gorm:"column:is_active;default:true"`
 	Password        string     `gorm:"column:password"`
 	ValidatedAT     *time.Time `gorm:"column:validated_at"`
 	Role            Role       `gorm:"column:role;default:user"`

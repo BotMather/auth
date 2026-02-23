@@ -65,12 +65,14 @@ func (a *AuthUsecaseImpl) GoogleAuth(ctx context.Context, idToken string) (*User
 			now := time.Now()
 			isSuperUser := false
 			isStaff := false
+			isActive := true
 			user := &User{
 				Email:       &email,
 				FirstName:   firstName,
 				LastName:    lastName,
 				IsSuperuser: &isSuperUser,
 				IsStaff:     &isStaff,
+				IsActive:    &isActive,
 				ValidatedAT: &now,
 			}
 			if userInstance, err = a.repo.Create(ctx, user); err != nil {
