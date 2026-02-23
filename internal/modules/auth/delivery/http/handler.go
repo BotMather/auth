@@ -151,11 +151,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 	isSuperUser := false
+	isStaff := false
 	userModel := auth.User{
 		FirstName:   userPayload.FirstName,
 		LastName:    userPayload.LastName,
 		Phone:       userPayload.Phone,
 		IsSuperuser: &isSuperUser,
+		IsStaff:     &isStaff,
 		Password:    password,
 	}
 	user, err := h.usecase.Register(ctx, &userModel)
