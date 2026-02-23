@@ -24,7 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/auth/v1/confirm": {
+        "/api/v1/auth/confirm": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -69,7 +69,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/v1/google": {
+        "/api/v1/auth/google": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -114,7 +114,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/v1/login": {
+        "/api/v1/auth/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -159,7 +159,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/v1/me": {
+        "/api/v1/auth/me": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -193,7 +193,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/v1/refresh": {
+        "/api/v1/auth/refresh": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -238,7 +238,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/v1/register": {
+        "/api/v1/auth/register": {
             "post": {
                 "description": "Create new user",
                 "consumes": [
