@@ -154,6 +154,7 @@ func (a *AuthUsecaseImpl) AccessToken(user *User) string {
 		"user_id":    user.ID,
 		"exp":        time.Now().Add(time.Minute * time.Duration(a.cfg.AccessExp)).Unix(),
 		"token_type": "access",
+		"jti":        utils.RandomString(20, "1234567890"),
 		"role":       user.Role,
 	}
 	token, err := utils.CreateJWT(claims, a.cfg.PrivateKey)
@@ -169,6 +170,7 @@ func (a *AuthUsecaseImpl) RefreshToken(user *User) string {
 		"user_id":    user.ID,
 		"exp":        time.Now().Add(time.Minute * time.Duration(a.cfg.RefreshExp)).Unix(),
 		"token_type": "refresh",
+		"jti":        utils.RandomString(20, "1234567890"),
 		"role":       user.Role,
 	}
 	token, err := utils.CreateJWT(claims, a.cfg.PrivateKey)
