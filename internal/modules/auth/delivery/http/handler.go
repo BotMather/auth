@@ -150,11 +150,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		dto.JSON(c, http.StatusInternalServerError, nil, "Internal Server Error")
 		return
 	}
+	isSuperUser := false
 	userModel := auth.User{
-		FirstName: userPayload.FirstName,
-		LastName:  userPayload.LastName,
-		Phone:     userPayload.Phone,
-		Password:  password,
+		FirstName:   userPayload.FirstName,
+		LastName:    userPayload.LastName,
+		Phone:       userPayload.Phone,
+		IsSuperuser: &isSuperUser,
+		Password:    password,
 	}
 	user, err := h.usecase.Register(ctx, &userModel)
 	if err != nil {
