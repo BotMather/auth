@@ -26,6 +26,7 @@ type User struct {
 	IsSuperuser     *bool      `gorm:"column:is_superuser;default:false"`
 	IsStaff         *bool      `gorm:"column:is_staff;default:false"`
 	IsActive        *bool      `gorm:"column:is_active;default:true"`
+	DateJoined      *time.Time `gorm:"column:date_joined"`
 	Password        string     `gorm:"column:password"`
 	ValidatedAT     *time.Time `gorm:"column:validated_at"`
 	Role            Role       `gorm:"column:role;default:user"`

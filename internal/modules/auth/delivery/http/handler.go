@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/JscorpTech/auth/internal/dto"
 	"github.com/JscorpTech/auth/internal/modules/auth"
@@ -153,6 +154,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	isSuperUser := false
 	isStaff := false
 	isActive := true
+	dateJoined := time.Now()
 	userModel := auth.User{
 		FirstName:   userPayload.FirstName,
 		LastName:    userPayload.LastName,
@@ -160,6 +162,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		IsSuperuser: &isSuperUser,
 		IsStaff:     &isStaff,
 		IsActive:    &isActive,
+		DateJoined:  &dateJoined,
 		Password:    password,
 	}
 	user, err := h.usecase.Register(ctx, &userModel)
